@@ -8,7 +8,6 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.errors import FloodWait
 from pyromod import listen
 from pyrogram.types import Message
-import pyrogram
 from pyrogram import Client, filters
 # from details import api_id, api_hash, bot_token
 # from dotenv import load_dotenv
