@@ -2,119 +2,300 @@ from pyrogram.errors.exceptions.bad_request_400 import StickerEmojiInvalid
 import requests
 import json
 import subprocess
-from pyrogram import Client, filters
+from pyrogram import Client, client,  filters
 from pyrogram.types.messages_and_media import message
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.errors import FloodWait
 from pyromod import listen
 from pyrogram.types import Message
+import pyrogram
 from pyrogram import Client, filters
+# from details import api_id, api_hash, bot_token
+# from dotenv import load_dotenv
+import tgcrypto
 from p_bar import progress_bar
 from subprocess import getstatusoutput
-from aiohttp import ClientSession
 import helper
-from logger import logging
+import logging
 import time
+import aiohttp
 import asyncio
+import aiofiles
 from pyrogram.types import User, Message
-import sys
-import re
 import os
+import pycurl
 
-bot = Client("bot",
-             bot_token= "7073327110:AAGFGVPzzqquAQNMBXACtyZRv5UuVvOIGgg",
-             api_id= 25263708,
-             api_hash= "9bde48b267ce65a576b478c0ff8c7bbb")
+import requests
 
+# bot = Client(
+#     "bot",
+#     api_id=api_id,
+#     api_hash=api_hash,
+#     bot_token=bot_token)
+
+bot = Client(
+    "bot",
+    bot_token=os.environ.get("BOT_TOKEN"),
+    api_id=int(os.environ.get("API_ID")),
+    api_hash=os.environ.get("API_HASH")
+)
+
+logger = logging.getLogger()
+
+os.makedirs("./downloads", exist_ok=True)
 
 @bot.on_message(filters.command(["start"]))
 async def account_login(bot: Client, m: Message):
-    editable = await m.reply_text(f"Hello [{m.from_user.first_name}](tg://user?id={m.from_user.id})\nPress /tuktuk")
+    editable = await m.reply_text("Hello im txt file downloader\nPress /pyro to download links listed in a txt file in the format **Name:link**\n\nPress /link to download single link\nPress /ytdlp to know video info.\nPress /aio to download url.\n\nBot made by ACE")
+#testing topranker
+# @bot.on_message(filters.command(["top"])& ~filters.edited)
+# async def upload(bot: Client, m: Message):
+    
+#     getstatusoutput(f'curl "https://onlinetest.sure60.com/?route=common/ajax&mod=liveclasses&ack=getcustompolicysignedcookiecdn&stream=https%3A%2F%2Fvodcdn.sure60.com%2Flivehttporigin%2F3525433%2F3525433-pr-class-10--10000-1632493792901%2Fmaster.m3u8" -c "cookie.txt"')
+#     y = "cookie.txt"  
+#     await m.reply_document(y)
+#     cmd = f'yt-dlp -o "top.mp4" --cookies cookie.txt "https://vodcdn.sure60.com/livehttporigin/3525433/3525433-pr-class-10--10000-1632493792901/master.m3u8"'
+#     download_cmd = f"{cmd} -R 25 --fragment-retries 25 --external-downloader aria2c --downloader-args 'aria2c: -x 16 -j 32'"
+#     os.system(download_cmd)
+#     await m.reply_video("top.mp4",supports_streaming=True,height=720,width=1280 )
+#     os.remove(y)
+#     os.remove("top.mp4")
+        
+@bot.on_message(filters.command(["link"]))
+async def upload(bot: Client, m: Message):
+    editable = await m.reply_text('Send link in **Name&link** format to download')
+    input9: Message = await bot.listen(editable.chat.id)
+    raw = input9.text    
+    name = raw.split('&')[0]
+    url = raw.split('&')[1] or raw
+    await m.reply_text("**Enter resolution**")
+    input2: Message = await bot.listen(editable.chat.id)
+    raw_text2 = input2.text
+    
+    Show = f"**Downloading:-**\n\n**Name :-** ```{name}\nQuality - {raw_text2}```\n\n**Url :-** ```{url}```"
+    prog = await m.reply_text(Show)
+    
+    cc = f'>> **Name :** {name}'
+    
+    
+    if "youtu" in url:
+        if raw_text2 in ["144", "240", "480"]:
+            ytf = f'bestvideo[height<={raw_text2}][ext=mp4]+bestaudio[ext=m4a]'
+        elif raw_text2 == "360":
+            ytf = "18/134"
+        elif raw_text2 == "720":
+            ytf = "22/136/18"
+        elif raw_text2 =="1080":
+            ytf = "137/399"
+        else:
+            ytf = 18
+    else:
+        ytf=f"bestvideo[height<={raw_text2}]"
 
+    if "jwplayer" in url:
+        if raw_text2 in ["180", "144"]:
+            try:
+                cmd = f'yt-dlp -F "{url}"'
+                k = await helper.run(cmd)
+                out = helper.vid_info(str(k))
+                ytf = f"{out['320x180 ']}/{out['256x144 ']}"
+            except Exception as e:
+                if e==0:
+                    raw_text2=="no"
+        elif raw_text2 in ["240", "270"]:
+            try:
+                cmd = f'yt-dlp -F "{url}"'
+                k = await helper.run(cmd)
+                out = helper.vid_info(str(k))
+                ytf = f"{out['480x270 ']}/{out['426x240 ']}"
+            except Exception as e:
+                if e==0:
+                    raw_text2=="no"
+        elif raw_text2 == "360":
+            try:
+                cmd = f'yt-dlp -F "{url}"'
+                k = await helper.run(cmd)
+                out = helper.vid_info(str(k))
+                ytf = out['640x360 ']
+            except Exception as e:
+                if e == 0:
+                    raw_text2=="no"
+                #cmd=f'yt-dlp -o "{name}.mp4" "{url}"'
+        elif raw_text2 == "480":
+            try:
+                cmd = f'yt-dlp -F "{url}"'
+                k = await helper.run(cmd)
+                out = helper.vid_info(str(k))
+                ytf = f"{out['960x540 ']}/{out['852x480 ']}"
+            except Exception as e:
+                if e==0:
+                    raw_text2=="no"
+            # cmd=f'yt-dlp -o "{name}.mp4" "{url}"'
+        elif raw_text2 == "720":
+            try:
+                cmd = f'yt-dlp -F "{url}"'
+                k = await helper.run(cmd)
+                out = helper.vid_info(str(k))
+                ytf = f"{out['1280x720 ']}"
+            except Exception as e:
+                if e==0:
+                    raw_text2=="no"
+            # cmd=f'yt-dlp -o "{name}.mp4" "{url}"'
+        elif raw_text2 == "1080":
+            try:
+                cmd = f'yt-dlp -F "{url}"'
+                k = await helper.run(cmd)
+                out = helper.vid_info(str(k))
+                ytf =f"{out['1920x1080 ']}/{['1920x1056']}"
+            except Exception as e:
+                if e==0:
+                    raw_text2=="no"
+        else:
+            # cmd = f'yt-dlp -F "{url}"'
+            # k = await helper.run(cmd)
+            #out = helper.vid_info(str(k))
+            # ytf = out['640x360 ']
+            #cmd=f'yt-dlp -o "{name}.mp4" "{url}"'
+            raw_text2=="no"
+#             except Exception as e:
+#                 print(e)
 
-@bot.on_message(filters.command("stop"))
-async def restart_handler(_, m):
-    await m.reply_text("**STOPPED**🚦", True)
-    os.execl(sys.executable, sys.executable, *sys.argv)
+    if ytf == f'bestvideo[height<={raw_text2}][ext=mp4]+bestaudio[ext=m4a]':
+        cmd = f'yt-dlp -o "{name}.mp4" -f "{ytf}" "{url}"'
 
+    # elif "jwplayer" in url:# and raw_text2 in ["144", "240", "360", "480", "720", "no"]:
+    #     cmd=f'yt-dlp -o "{name}.mp4" "{url}"'    
+    elif "adda247" in url:# and raw_text2 in ["144", "240", "360", "480", "720", "no"]:
+        cmd=f'yt-dlp -o "{name}.mp4" "{url}"'
+    elif "kdcampus" or "streamlock" in url:
+        cmd=f'yt-dlp -o "{name}.mp4" "{url}"'
+    elif ".pdf" in url: #and raw_text2 in ["144", "240", "360", "480", "720", "no"]:
+        cmd = f'yt-dlp -o "{name}.pdf" "{url}"'
+    elif "drive" in url:
+        cmd = f'yt-dlp -o "{name}.pdf" "{url}"'
+    elif raw_text2 == "no":# and raw_text2 in ["144", "240", "360", "480", "720", "no"]:
+        cmd=f'yt-dlp -o "{name}.mp4" "{url}"'
+#             elif "unknown" in ytf:
+#                 cmd=f'yt-dlp -o "{name}.mp4" "{url}"'
+    else:
+        cmd = f'yt-dlp -o "{name}.mp4" -f "{ytf}+bestaudio" "{url}"'
 
+    try:
+        download_cmd = f"{cmd} -R 25 --fragment-retries 25 --external-downloader aria2c --downloader-args 'aria2c: -x 16 -j 32'"
+        os.system(download_cmd)
+        filename = f"{name}.mp4"
+        subprocess.run(f'ffmpeg -i "{filename}" -ss 00:01:00 -vframes 1 "{filename}.jpg"', shell=True)
+        thumbnail = f"{filename}.jpg"
+        dur = int(helper.duration(filename))
+        await prog.delete (True)
+        try:
+            await m.reply_video(f"{name}.mp4",caption=cc, supports_streaming=True,height=720,width=1280,thumb=thumbnail,duration=dur)
 
-@bot.on_message(filters.command(["tuktuk"]))
+        except:
+            await m.reply_text("There was an error while uploading file as streamable so, now trying to upload as document.")
+            await m.reply_document(f"{name}.webm",caption=cc)
+        os.remove(f"{name}.mp4")
+        os.remove(f"{filename}.jpg")
+    except Exception as e:
+        await m.reply_text(e)
+        
+    
+    
+@bot.on_message(filters.command(["aio"]))
+async def aiohttp(bot: Client, m: Message):
+    editable = await m.reply_text('Send link in **Name&link** format to download')
+    input9: Message = await bot.listen(editable.chat.id)
+    raw = input9.text    
+    name = raw.split('&')[0]
+    url = raw.split('&')[1]
+    p =await m.reply_text("Downloading")
+    k = await helper.aio(url)
+    await m.reply_document(k, caption=name)
+    await p.delete(True)
+    os.remove(k)
+    
+@bot.on_message(filters.command(["ytdlp"]))
 async def account_login(bot: Client, m: Message):
-    editable = await m.reply_text('Send TXT file for download')
+    
+    editable = await m.reply_text('Send link in **Name&link** format to get its info')
+    input: Message = await bot.listen(editable.chat.id)
+    raw_file = input.text    
+    name = raw_file.split('&')[0]
+    url = raw_file.split('&')[1]   
+    cmd = f'yt-dlp -F "{url}"'
+    k = await helper.run(cmd)
+    out = helper.parse_vid_info(str(k))
+    await m.reply_text(out)
+    buttons = []
+    if 'unknown' in out[0][1]:
+        r = await m.reply_text("Its Unknown so Downloading")
+        f = helper.old_download(url, name)
+#         res_file = await fast_upload(bot, f, r)
+        await m.reply_document(
+        document=f,caption=name
+        )
+        await r.delete(True)
+        return
+    
+    for i in out:
+        if 'youtu' in url:
+            await m.reply_text(i[1])
+            x = i[1].split()[0].split("x")[-1]
+            buttons.append(InlineKeyboardButton(i[1], callback_data=f"id:bestvideo[height<={x}][ext=mp4]"))
+        else:
+            buttons.append(InlineKeyboardButton(i[1], callback_data=f"id:{i[0]}"))
+    buttons_markup = InlineKeyboardMarkup([buttons])
+    await m.reply(f"Name : `{name}`\n\n:Link : `{url}`",reply_markup=buttons_markup)
+            
+
+@bot.on_message(filters.command(["pyro"]))
+async def account_login(bot: Client, m: Message):
+    editable = await m.reply_text("Send txt file**")
     input: Message = await bot.listen(editable.chat.id)
     x = await input.download()
     await input.delete(True)
 
+    # editable = await m.reply_text("**Send From where you want to download**")
+    # input1: Message = await bot.listen(editable.chat.id)
+    # raw_text = input1.text
 
+    
 
-    path = f"./downloads/{m.chat.id}"
+    try:    
+        with open(x, "r") as f:
+            content = f.read()
+        content = content.split("\n")
+        links = []
+        for i in content:
+            links.append(i.split(":", 1))
+        os.remove(x)
+        # print(len(links))
+    except:
+        await m.reply_text("Invalid file input.")
+        os.remove(x)
+        return
+
+    editable = await m.reply_text(f"Total links found are **{len(links)}**\n\nSend From where you want to download initial is **0**")
+    input1: Message = await bot.listen(editable.chat.id)
+    raw_text = input1.text
 
     try:
-       with open(x, "r") as f:
-           content = f.read()
-       content = content.split("\n")
-       links = []
-       for i in content:
-           links.append(i.split("://", 1))
-       os.remove(x)
-            # print(len(links)
+        arg = int(raw_text)
     except:
-           await m.reply_text("Invalid file input.")
-           os.remove(x)
-           return
+        arg = 0
     
-   
-    await editable.edit(f"Total links found are **{len(links)}**\n\nSend From where you want to download initial is **1**")
+    
+    editable = await m.reply_text("Enter Title")
     input0: Message = await bot.listen(editable.chat.id)
-    raw_text = input0.text
-    await input0.delete(True)
-
-    await editable.edit("**Enter Batch Name**")
-    input1: Message = await bot.listen(editable.chat.id)
-    raw_text0 = input1.text
-    await input1.delete(True)
+    raw_text0 = input0.text
     
-
-    await editable.edit("**Enter resolution**")
+    await m.reply_text("**Enter resolution**")
     input2: Message = await bot.listen(editable.chat.id)
     raw_text2 = input2.text
-    await input2.delete(True)
-    try:
-        if raw_text2 == "144":
-            res = "256x144"
-        elif raw_text2 == "240":
-            res = "426x240"
-        elif raw_text2 == "360":
-            res = "640x360"
-        elif raw_text2 == "480":
-            res = "854x480"
-        elif raw_text2 == "720":
-            res = "1280x720"
-        elif raw_text2 == "1080":
-            res = "1920x1080" 
-        else: 
-            res = "UN"
-    except Exception:
-            res = "UN"
-    
-    
 
-    await editable.edit("**Enter A Highlighter Otherwise send 👉Co👈 **")
-    input3: Message = await bot.listen(editable.chat.id)
-    raw_text3 = input3.text
-    await input3.delete(True)
-    highlighter  = f"️ ⁪⁬⁮⁮⁮"
-    if raw_text3 == 'Co':
-        MR = highlighter 
-    else:
-        MR = raw_text3
-   
-    await editable.edit("Now send the **Thumb url**\nEg : ```https://telegra.ph/file/0633f8b6a6f110d34f044.jpg```\n\nor Send `no`")
+    editable4= await m.reply_text("Now send the **Thumb url**\nEg : ```https://telegra.ph/file/d9e24878bd4aba05049a1.jpg```\n\nor Send **no**")
     input6 = message = await bot.listen(editable.chat.id)
     raw_text6 = input6.text
-    await input6.delete(True)
-    await editable.delete()
 
     thumb = input6.text
     if thumb.startswith("http://") or thumb.startswith("https://"):
@@ -122,91 +303,340 @@ async def account_login(bot: Client, m: Message):
         thumb = "thumb.jpg"
     else:
         thumb == "no"
+        
+           
+    count =int(raw_text)    
+    try:
+        for i in range(arg, len(links)):
+        
+            url = links[i][1]
+            name = links[i][0].replace("\t", "")
+                # await m.reply_text(name +":"+ url)
 
-    if len(links) == 1:
-        count = 1
-    else:
-        count = int(raw_text)
+            Show = f"**Downloading:-**\n\n**Name :-** ```{name}\nQuality - {raw_text2}```\n\n**Url :-** ```{url}```"
+            prog = await m.reply_text(Show)
+            cc = f'**Name :** {name}\n\n» **Title :** {raw_text0}\n» **Index :** {count}'
+            
+            
+            if "youtu" in url:
+                if raw_text2 in ["144", "240", "480"]:
+                    ytf = f'bestvideo[height<={raw_text2}][ext=mp4]+bestaudio[ext=m4a]'
+                elif raw_text2 == "360":
+                    ytf = 18
+                elif raw_text2 == "720":
+                    ytf = "22/18"
+                else:
+                    ytf = 18
+            else:
+                ytf=f"bestvideo[height<={raw_text2}]"
+#             try:
+            if "jwplayer" in url:
+                if raw_text2 in ["180", "144"]:
+                    try:
+                        cmd = f'yt-dlp -F "{url}"'
+                        k = await helper.run(cmd)
+                        out = helper.vid_info(str(k))
+                        ytf = f"{out['320x180 ']}/{out['256x144 ']}"
+                    except Exception as e:
+                        if e==0:
+                            raw_text2=="no"
+                elif raw_text2 in ["240", "270"]:
+                    try:
+                        cmd = f'yt-dlp -F "{url}"'
+                        k = await helper.run(cmd)
+                        out = helper.vid_info(str(k))
+                        ytf = f"{out['480x270 ']}/{out['426x240 ']}"
+                    except Exception as e:
+                        if e==0:
+                            raw_text=="no"
+                elif raw_text2 == "360":
+                    try:
+                        cmd = f'yt-dlp -F "{url}"'
+                        k = await helper.run(cmd)
+                        out = helper.vid_info(str(k))
+                        ytf = out['640x360 ']
+                    except Exception as e:
+                        if e == 0:
+                            raw_text2=="no"
+                        #cmd=f'yt-dlp -o "{name}.mp4" "{url}"'
+                elif raw_text2 == "480":
+                    try:
+                        cmd = f'yt-dlp -F "{url}"'
+                        k = await helper.run(cmd)
+                        out = helper.vid_info(str(k))
+                        ytf = f"{out['960x540 ']}/{out['852x480 ']}"
+                    except Exception as e:
+                        if e==0:
+                            raw_text2=="no"
+                    # cmd=f'yt-dlp -o "{name}.mp4" "{url}"'
+                elif raw_text2 == "720":
+                    try:
+                        cmd = f'yt-dlp -F "{url}"'
+                        k = await helper.run(cmd)
+                        out = helper.vid_info(str(k))
+                        ytf = f"{out['1280x720 ']}"
+                    except Exception as e:
+                        if e==0:
+                            raw_text2=="no"
+                    # cmd=f'yt-dlp -o "{name}.mp4" "{url}"'
+                elif raw_text2 == "1080":
+                    try:
+                        cmd = f'yt-dlp -F "{url}"'
+                        k = await helper.run(cmd)
+                        out = helper.vid_info(str(k))
+                        ytf =f"{out['1920x1080 ']}/{['1920x1056']}"
+                    except Exception as e:
+                        if e==0:
+                            raw_text2=="no"
+                else:
+                   # cmd = f'yt-dlp -F "{url}"'
+                   # k = await helper.run(cmd)
+                    #out = helper.vid_info(str(k))
+                   # ytf = out['640x360 ']
+                    #cmd=f'yt-dlp -o "{name}.mp4" "{url}"'
+                    raw_text2=="no"
+#             except Exception as e:
+#                 print(e)
+            
+
+            if ytf == f'bestvideo[height<={raw_text2}][ext=mp4]+bestaudio[ext=m4a]':
+                cmd = f'yt-dlp -o "{name}.mp4" -f "{ytf}" "{url}"'
+
+            # elif "jwplayer" in url:# and raw_text2 in ["144", "240", "360", "480", "720", "no"]:
+            #     cmd=f'yt-dlp -o "{name}.mp4" "{url}"'    
+            elif "adda247" in url:# and raw_text2 in ["144", "240", "360", "480", "720", "no"]:
+                cmd=f'yt-dlp -o "{name}.mp4" "{url}"'
+            elif "kdcampus" or "streamlock" in url:
+                cmd=f'yt-dlp -o "{name}.mp4" "{url}"'
+            elif ".pdf" in url: #and raw_text2 in ["144", "240", "360", "480", "720", "no"]:
+                cmd = f'yt-dlp -o "{name}.pdf" "{url}"'
+            elif "drive" in url:
+                cmd = f'yt-dlp -o "{name}.pdf" "{url}"'
+            elif raw_text2 == "no":# and raw_text2 in ["144", "240", "360", "480", "720", "no"]:
+                cmd=f'yt-dlp -o "{name}.mp4" "{url}"'
+#             elif "unknown" in ytf:
+#                 cmd=f'yt-dlp -o "{name}.mp4" "{url}"'
+            else:
+                cmd = f'yt-dlp -o "{name}.mp4" -f "{ytf}+bestaudio" "{url}"'
+
+            
+            
+                # download_cmd = f"{cmd} -R 25 --fragment-retries 25 --external-downloader aria2c --downloader-args 'aria2c: -x 16 -j 32'"
+                # os.system(download_cmd)
+            try:
+                if cmd == f'yt-dlp -o "{name}.pdf" "{url}"' or "drive" in url:
+#                 if "drive" in url:
+                    try:
+                        ka=await helper.download(url)
+                        await prog.delete (True)
+                        time.sleep(1)
+                        reply = await m.reply_text(f"Uploading - ```{name}```")
+                        time.sleep(1)
+                        start_time = time.time()
+                        await m.reply_document(ka, caption=f'>> **File :** {name}\n>> **Title :** {raw_text0}\n\n>> **Index :** {count}')
+                        count+=1
+                        # time.sleep(1)
+                        await reply.delete (True)
+                        time.sleep(1)
+                        os.remove(ka)
+                        time.sleep(3)
+                    except FloodWait as e:
+                        await m.reply_text(str(e))
+                        time.sleep(e.x)
+                        continue
+                elif cmd == f'yt-dlp -o "{name}.pdf" "{url}"' or ".pdf" in url:
+                    try:
+                        ka=await helper.aio(url)
+                        await prog.delete (True)
+                        time.sleep(1)
+                        reply = await m.reply_text(f"Uploading - ```{name}```")
+                        time.sleep(1)
+                        start_time = time.time()
+                        await m.reply_document(ka, caption=f'>> **File :** {name}\n>> **Title :** {raw_text0}\n\n>> **Index :** {count}')
+                        count+=1
+                        # time.sleep(1)
+                        await reply.delete (True)
+                        time.sleep(1)
+                        os.remove(ka)
+                        time.sleep(3)
+                    except FloodWait as e:
+                        await m.reply_text(str(e))
+                        time.sleep(e.x)
+                        continue
+#                         os.remove(ka)
+#                     try:
+
+#                         download_cmd = f"{cmd} -R 25 --fragment-retries 25 --external-downloader aria2c --downloader-args 'aria2c: -x 16 -j 32'"
+#                         os.system(download_cmd)
+#                         filename = f"{name}.pdf"
+#                         await m.reply_document(f'{name}.pdf',caption =f'>> **File :** {name}\n>> **Title :** {raw_text0}\n\n>> **Index :** {count}')
+#                         count+=1
+#                         await prog.delete (True)
+#                         os.remove(f'{name}.pdf')
+#                         time.sleep(2)
+#                     except Exception as e:
+#                         await m.reply_text(f"**downloading failed ❌**\n{str(e)}\n**Name** - {name}\n**Link** - ```{url}```")
+#                         continue
+                else:
+                    try:
+                        download_cmd = f"{cmd} -R 25 --fragment-retries 25 --external-downloader aria2c --downloader-args 'aria2c: -x 16 -j 32'"
+                        os.system(download_cmd)
+                        filename = f"{name}.mp4"
+                        subprocess.run(f'ffmpeg -i "{filename}" -ss 00:01:00 -vframes 1 "{filename}.jpg"', shell=True)
+                        await prog.delete (True)
+                        reply = await m.reply_text(f"Uploading - ```{name}```")
+                        try:
+                            if thumb == "no":
+                                thumbnail = f"{filename}.jpg"
+                            else:
+                                thumbnail = thumb
+                        except Exception as e:
+                            await m.reply_text(str(e))
+
+                        dur = int(helper.duration(filename))
+            #                         await prog.delete (True)
+                        start_time = time.time()
+                        await m.reply_video(f"{name}.mp4",caption=cc, supports_streaming=True,height=720,width=1280,thumb=thumbnail,duration=dur, progress=progress_bar,progress_args=(reply,start_time))
+                        count+=1
+                        os.remove(f"{name}.mp4")
+
+                        os.remove(f"{filename}.jpg")
+                        await reply.delete (True)
+                        time.sleep(1)
+                    except Exception as e:
+                        await m.reply_text(f"**downloading failed ❌**\n{str(e)}\n**Name** - {name}\n**Link** - ```{url}```")
+                        continue
+            except Exception as e:
+                await m.reply_text(str(e))
+                continue
+    except Exception as e:
+        await m.reply_text(str(e))
+    await m.reply_text("Done")
+
+@bot.on_message(filters.command(["top"]))
+async def account_login(bot: Client, m: Message):
+    editable = await m.reply_text(f"**Hi im Topranker dl**")
+    input: Message = await bot.listen(editable.chat.id)
+    x = await input.download()
+    await input.delete(True)
+
+    try:    
+        with open(x, "r") as f:
+            content = f.read()
+        content = content.split("\n")
+        links = []
+        for i in content:
+            links.append(i.split(":", 1))
+        os.remove(x)
+        # print(len(links))
+    except:
+        await m.reply_text("Invalid file input.")
+        os.remove(x)
+        return
+
+    editable = await m.reply_text(f"Total links found are **{len(links)}**\n\nSend From where you want to download initial is **0**")
+    input1: Message = await bot.listen(editable.chat.id)
+    raw_text = input1.text
 
     try:
-        for i in range(count - 1, len(links)):
+        arg = int(raw_text)
+    except:
+        arg = 0
+    
+    
+    editable = await m.reply_text(f"**Copy Paste the App Name of which you want to download videos.**\n\n`vikramjeet`\n\n`sure60`\n\n`theoptimistclasses`")
+    input0: Message = await bot.listen(editable.chat.id)
+    raw_text0 = input0.text
+    
 
-            V = links[i][1].replace("file/d/","uc?export=download&id=").replace("www.youtube-nocookie.com/embed", "youtu.be").replace("?modestbranding=1", "").replace("/view?usp=sharing","") # .replace("mpd","m3u8")
-            url = "https://" + V
+    editable4= await m.reply_text("Now send the **Thumb url**\nEg : ```https://telegra.ph/file/d9e24878bd4aba05049a1.jpg```\n\nor Send **no**")
+    input6 = message = await bot.listen(editable.chat.id)
+    raw_text6 = input6.text
 
-            if "visionias" in url:
-                async with ClientSession() as session:
-                    async with session.get(url, headers={'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9', 'Accept-Language': 'en-US,en;q=0.9', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive', 'Pragma': 'no-cache', 'Referer': 'http://www.visionias.in/', 'Sec-Fetch-Dest': 'iframe', 'Sec-Fetch-Mode': 'navigate', 'Sec-Fetch-Site': 'cross-site', 'Upgrade-Insecure-Requests': '1', 'User-Agent': 'Mozilla/5.0 (Linux; Android 12; RMX2121) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Mobile Safari/537.36', 'sec-ch-ua': '"Chromium";v="107", "Not=A?Brand";v="24"', 'sec-ch-ua-mobile': '?1', 'sec-ch-ua-platform': '"Android"',}) as resp:
-                        text = await resp.text()
-                        url = re.search(r"(https://.*?playlist.m3u8.*?)\"", text).group(1)
+    thumb = input6.text
+    if thumb.startswith("http://") or thumb.startswith("https://"):
+        getstatusoutput(f"wget '{thumb}' -O 'thumb.jpg'")
+        thumb = "thumb.jpg"
+    else:
+        thumb == "no"
+        
+           
+    count =int(raw_text)    
+    try:
+        for i in range(arg, len(links)):
+        
+            url = links[i][1]
+            name = links[i][0].replace("\t", "")
+                # await m.reply_text(name +":"+ url)
 
-            elif 'videos.classplusapp' in url:
-             url = requests.get(f'https://api.classplusapp.com/cams/uploader/video/jw-signed-url?url={url}', headers={'x-access-token': 'eyJhbGciOiJIUzM4NCIsInR5cCI6IkpXVCJ9.eyJpZCI6ODg5NjE4NDMsIm9yZ0lkIjoyNTUxLCJ0eXBlIjoxLCJtb2JpbGUiOiI5MTY2NjMzMzY2NjU1OCIsIm5hbWUiOiJGZmZmZmZmIiwiZW1haWwiOiJsYWtlZm94NzA1QGxpZWJvZS5jb20iLCJpc0ZpcnN0TG9naW4iOnRydWUsImRlZmF1bHRMYW5ndWFnZSI6IkVOIiwiY291bnRyeUNvZGUiOiJJTiIsImlzSW50ZXJuYXRpb25hbCI6MCwiaXNEaXkiOmZhbHNlLCJsb2dpblZpYSI6Ik90cCIsImZpbmdlcnByaW50SWQiOiJiNjY3M2Y1YjQ2NmNiODZmZGFhZmJlZGZjNzRjZWYzNSIsImlhdCI6MTY4MTIzMjExNywiZXhwIjoxNjgxODM2OTE3fQ.r0klWJjEaA2jqpij_aSGXA7Mth2rd6LEsfRUhZT8a0byvsJd811FUiyH3TnIfTev'}).json()['url']
+            # Show = f"**Downloading:-**\n\n**Name :-** ```{name}\nQuality - {raw_text2}```\n\n**Url :-** ```{url}```"
+            # prog = await m.reply_text(Show)
+            # cc = f'>> **Name :** {name}\n>> **Title :** {raw_text0}\n\n>> **Index :** {count}'
 
-            elif '/master.mpd' in url:
-             id =  url.split("/")[-2]
-             url =  "https://d26g5bnklkwsh4.cloudfront.net/" + id + "/master.m3u8"
 
-            name1 = links[i][0].replace("\t", "").replace(":", "").replace("/", "").replace("+", "").replace("#", "").replace("|", "").replace("@", "").replace("*", "").replace(".", "").replace("https", "").replace("http", "").strip()
-            name = f'{str(count).zfill(3)}) {name1[:60]}'
-
-            if "youtu" in url:
-                ytf = f"b[height<={raw_text2}][ext=mp4]/bv[height<={raw_text2}][ext=mp4]+ba[ext=m4a]/b[ext=mp4]"
-            else:
-                ytf = f"b[height<={raw_text2}]/bv[height<={raw_text2}]+ba/b/bv+ba"
-
-            if "jw-prod" in url:
-                cmd = f'yt-dlp -o "{name}.mp4" "{url}"'
-            else:
-                cmd = f'yt-dlp -f "{ytf}" "{url}" -o "{name}.mp4"'
-
-            try:  
+            if raw_text0 in "vikramjeet" :
                 
-                cc = f'**Vid_id  »** {str(count).zfill(3)}\n**Title  »** {name1} {res} {MR}.mkv\n**Batch »** {raw_text0}\n\n'
-                cc1 = f'**Vid_id  »** {str(count).zfill(3)}\n**Title »** {name1} {MR}.pdf \n**Batch »** {raw_text0}\n\n'
-                if "drive" in url:
-                    try:
-                        ka = await helper.download(url, name)
-                        copy = await bot.send_document(chat_id=m.chat.id,document=ka, caption=cc1)
-                        count+=1
-                        os.remove(ka)
-                        time.sleep(1)
-                    except FloodWait as e:
-                        await m.reply_text(str(e))
-                        time.sleep(e.x)
-                        continue
+                y= url.replace("/", "%2F")
+                rout = f"https://www.toprankers.com/?route=common/ajax&mod=liveclasses&ack=getcustompolicysignedcookiecdn&stream=https%3A%2F%2Fsignedsec.toprankers.com%2Flivehttporigin%2F{y[56:-14]}%2Fmaster.m3u8"
+                getstatusoutput(f'curl "{rout}" -c "cookie.txt"')
+                cook = "cookie.txt"
+                # print (rout)
+                # print(url)
+            elif raw_text0 in "sure60":
+                y= url.replace("/", "%2F")
+                rout = f"https://onlinetest.sure60.com/?route=common/ajax&mod=liveclasses&ack=getcustompolicysignedcookiecdn&stream=https%3A%2F%2Fvodcdn.sure60.com%2Flivehttporigin%2F{y[49:-14]}%2Fmaster.m3u8"
+                getstatusoutput(f'curl "{rout}" -c "cookie.txt"')
+                cook = "cookie.txt"            
+            elif raw_text0 in "theoptimistclasses":
+                y= url.replace("/", "%2F")
+                rout=f"https://live.theoptimistclasses.com/?route=common/ajax&mod=liveclasses&ack=getcustompolicysignedcookiecdn&stream=https%3A%2F%2Fvodcdn.theoptimistclasses.com%2F{y[44:-14]}%2Fmaster.m3u8"
+                getstatusoutput(f'curl "{rout}" -c "cookie.txt"')              
+                cook = "cookie.txt"
                 
-                elif ".pdf" in url:
-                    try:
-                        cmd = f'yt-dlp -o "{name}.pdf" "{url}"'
-                        download_cmd = f"{cmd} -R 25 --fragment-retries 25"
-                        os.system(download_cmd)
-                        copy = await bot.send_document(chat_id=m.chat.id, document=f'{name}.pdf', caption=cc1)
-                        count += 1
-                        os.remove(f'{name}.pdf')
-                    except FloodWait as e:
-                        await m.reply_text(str(e))
-                        time.sleep(e.x)
-                        continue
-                else:
-                    Show = f"**Downloading:-**\n\n**Name :-** `{name}\nQuality - {raw_text2}`\n\n**Url :-** `{url}`"
-                    prog = await m.reply_text(Show)
-                    res_file = await helper.download_video(url, cmd, name)
-                    filename = res_file
-                    await prog.delete(True)
-                    await helper.send_vid(bot, m, cc, filename, thumb, name, prog)
-                    count += 1
-                    time.sleep(1)
+            Show = f"**Downloading:-**\n\n**Name :-** `{name}`\n\n**Url :-** `{url}`"
+            prog = await m.reply_text(Show)
+            cc = f'**Name :** {name}\n\n» **Index :** {count}'
 
+            cmd = f'yt-dlp -o "{name}.mp4" --cookies {cook} "{url}"'
+            try:
+                download_cmd = f"{cmd} -R 25 --fragment-retries 25 --external-downloader aria2c --downloader-args 'aria2c: -x 16 -j 32'"
+                os.system(download_cmd)
+                filename = f"{name}.mp4"
+                subprocess.run(f'ffmpeg -i "{filename}" -ss 00:01:00 -vframes 1 "{filename}.jpg"', shell=True)
+                await prog.delete (True)
+                reply = await m.reply_text(f"Uploading - ```{name}```")
+                try:
+                    if thumb == "no":
+                        thumbnail = f"{filename}.jpg"
+                    else:
+                        thumbnail = thumb
+                except Exception as e:
+                    await m.reply_text(str(e))
+
+                dur = int(helper.duration(filename))
+
+                start_time = time.time()
+
+                await m.reply_video(f"{name}.mp4",supports_streaming=True,height=720,width=1280,caption=cc,duration=dur,thumb=thumbnail, progress=progress_bar,progress_args=(reply,start_time) )
+                count+=1
+                os.remove(f"{name}.mp4")
+
+                os.remove(f"{filename}.jpg")
+                os.remove(cook)
+                await reply.delete (True)
+                time.sleep(1)
             except Exception as e:
-                await m.reply_text(
-                    f"**downloading failed 🅰🅸🆁 🅿🅷🅴🅾🅽🅸🆇™**\n{str(e)}\n**Name** - {name}\n**Link** - `{url}`"
-                )
+                await m.reply_text(f"**downloading failed ❌**\n{str(e)}\n**Name** - {name}\n**Link** - ```{url}```")
                 continue
-
     except Exception as e:
-        await m.reply_text(e)
+        await m.reply_text(str(e))
     await m.reply_text("Done")
+
+
+
+
+
+
 
 
 bot.run()
