@@ -9,40 +9,23 @@ from pyrogram.errors import FloodWait
 from pyromod import listen
 from pyrogram.types import Message
 from pyrogram import Client, filters
-# from details import api_id, api_hash, bot_token
-# from dotenv import load_dotenv
-import tgcrypto
 from p_bar import progress_bar
 from subprocess import getstatusoutput
+from aiohttp import ClientSession
 import helper
-import logging
+from logger import logging
 import time
-import aiohttp
 import asyncio
-import aiofiles
 from pyrogram.types import User, Message
 import sys
 import re
 import os
 
-import requests
+bot = Client("bot",
+             bot_token= "7073327110:AAGFGVPzzqquAQNMBXACtyZRv5UuVvOIGgg",
+             api_id= 25263708,
+             api_hash= "9bde48b267ce65a576b478c0ff8c7bbb")
 
-# bot = Client(
-#     "bot",
-#     api_id=api_id,
-#     api_hash=api_hash,
-#     bot_token=bot_token)
-
-bot = Client(
-    "bot",
-    bot_token=os.environ.get("BOT_TOKEN"),
-    api_id=int(os.environ.get("API_ID")),
-    api_hash=os.environ.get("API_HASH")
-)
-
-logger = logging.getLogger()
-
-os.makedirs("./downloads", exist_ok=True)
 
 @bot.on_message(filters.command(["start"]))
 async def account_login(bot: Client, m: Message):
