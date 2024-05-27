@@ -1,11 +1,11 @@
 
 {
 
-    "name": "MG",
+    "name": "Unkniwntxt",
 
-    "description": "A Modular telegram bot.",
+    "description": "Download videos from various websites using this telegram bot",
 
-    "repository": "https://github.com/imacekun/pyrotxt",
+    "repository": "https://github.com/telegrambots0/Mahitxt",
     "buildpacks":[
         {
             "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git"
@@ -55,8 +55,11 @@
 
             "url": "heroku/python"
 
-        }
-
+        },
+       {
+            "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git"
+       }
+       
     ]
 
 }
