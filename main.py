@@ -23,7 +23,6 @@ import asyncio
 import aiofiles
 from pyrogram.types import User, Message
 import os
-import pycurl
 
 import requests
 
