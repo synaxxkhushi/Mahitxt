@@ -2,7 +2,7 @@ from pyrogram.errors.exceptions.bad_request_400 import StickerEmojiInvalid
 import requests
 import json
 import subprocess
-from pyrogram import Client, client,  filters
+from pyrogram import Client, filters
 from pyrogram.types.messages_and_media import message
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.errors import FloodWait
@@ -21,6 +21,8 @@ import aiohttp
 import asyncio
 import aiofiles
 from pyrogram.types import User, Message
+import sys
+import re
 import os
 
 import requests
