@@ -59,6 +59,7 @@ async def restart_handler(_, m):
 
 @bot.on_message(filters.command(["SmexyOP"]))
 async def account_login(bot: Client, m: Message):
+    me2 = (await bot.get_me()).mention
     editable = await m.reply_text('**𝐇𝐞𝐲 🍷{m.from_user.mention}🍷  \n\n 𝐓𝐨 𝐃𝐨𝐰𝐧𝐥𝐨𝐚𝐝 𝐀 𝐓𝐱𝐭 𝐅𝐢𝐥𝐞 𝐒𝐞𝐧𝐝 𝐇𝐞𝐫𝐞 ⏍**')
     input: Message = await bot.listen(editable.chat.id)
     x = await input.download()
