@@ -61,7 +61,7 @@ async def restart_handler(_, m):
 async def account_login(bot: Client, m: Message):
     me2 = (await bot.get_me()).mention
     editable = await m.reply_text(
-       f"""𝐇𝐞𝐲 🍷{me2} 𝙃𝙚𝙧𝙚🍷  \n\n 𝐓𝐨 𝐃𝐨𝐰𝐧𝐥𝐨𝐚𝐝 𝐘𝐨𝐮𝐫 𝐓𝐱𝐭 𝐅𝐢𝐥𝐞. 𝐍𝐨𝐰 𝐒𝐞𝐧𝐝 𝐘𝐨𝐮𝐫 𝐓𝐱𝐭 𝐅𝐢𝐥𝐞 𝐇𝐞𝐫𝐞 ⏍ """)
+       f"""𝐇𝐞𝐲 {m.from_user.mention}🥂   \n\n 𝐓𝐨 𝐃𝐨𝐰𝐧𝐥𝐨𝐚𝐝 𝐘𝐨𝐮𝐫 𝐓𝐱𝐭 𝐅𝐢𝐥𝐞. 𝐍𝐨𝐰 𝐒𝐞𝐧𝐝 𝐌𝐞 𝐘𝐨𝐮𝐫 𝐓𝐱𝐭 𝐅𝐢𝐥𝐞 𝐇𝐞𝐫𝐞 ⏍ """)
     input: Message = await bot.listen(editable.chat.id)
     x = await input.download()
     await input.delete(True)
@@ -96,7 +96,7 @@ async def account_login(bot: Client, m: Message):
     await input1.delete(True)
     
 
-    await editable.edit("**𝐄𝐧𝐭𝐞𝐫 𝐄𝐞𝐬𝐨𝐥𝐮𝐭𝐢𝐨𝐧 📸\n\n𓆩ℚᴜᴀʟɪᴛʏ तो बताओ 𝕃ɪᴋᴇ `𝟷𝟺𝟺`ᴘ, `𝟸𝟺𝟶`ᴘ, `𝟹𝟼𝟶`ᴘ, `𝟺𝟾𝟶`ᴘ, `𝟽𝟸𝟶`ᴘ, `𝟷𝟶𝟾𝟶`ᴘ𓆪\n𝐏𝐥𝐞𝐚𝐬𝐞 𝐂𝐡𝐨𝐨𝐬𝐞 𝐐𝐮𝐚𝐥𝐢𝐭𝐲**")
+    await editable.edit("**𝐄𝐧𝐭𝐞𝐫 𝐄𝐞𝐬𝐨𝐥𝐮𝐭𝐢𝐨𝐧 📸\n\n𓆩ℚᴜᴀʟɪᴛʏ तो बताओ 𝕃ɪᴋᴇ `144`ᴘ, `240`ᴘ, `360`ᴘ, `480`ᴘ, `720`ᴘ, `1080`ᴘ𓆪\n𝐏𝐥𝐞𝐚𝐬𝐞 𝐂𝐡𝐨𝐨𝐬𝐞 𝐐𝐮𝐚𝐥𝐢𝐭𝐲**")
     input2: Message = await bot.listen(editable.chat.id)
     raw_text2 = input2.text
     await input2.delete(True)
