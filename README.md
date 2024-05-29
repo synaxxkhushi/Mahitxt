@@ -21,7 +21,7 @@ Contact: [Telegram](https://t.me/SmexyOP)
 
 [![Deploy To Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/telegrambots0/SmexyTxtLeecher)
 
-## vars.py [vars.py](https://github.com/telegrambots0/SmexyTxtLeech/blob/main/modules/vars.py)
+## details.py [details.py](https://github.com/telegrambots0/SmexyTxtLeech/blob/main/details.py)
 
 * `BOT_TOKEN`  - Get Bot Token From @BotFather
 
