@@ -1,0 +1,13 @@
+import asyncio
+from pyrogram.errors import FloodWait
+
+async def invoke_with_retry(session, query, timeout=None):
+    while True:
+        try:
+            return await session.invoke(query, timeout=timeout)
+        except FloodWait as e:
+            print(f"FloodWait error: Need to wait for {e.x} seconds")
+            await asyncio.sleep(e.x)
+
+# Usage
+result = await invoke_with_retry(self.session, query, timeout=timeout)
